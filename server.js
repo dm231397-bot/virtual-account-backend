@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const bodyParser = require('body-parser');
-const User = require('./models/User');
+const User = require('./models/User'); // Make sure this matches your folder structure exactly
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,7 +16,7 @@ mongoose.connect(process.env.MONGO_URI, {
     useUnifiedTopology: true
 })
 .then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+.catch(err => console.log('MongoDB connection error:', err));
 
 // Create a virtual account for a new user
 app.post('/create-user', async (req, res) => {
