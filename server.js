@@ -17,15 +17,15 @@ const PORT = process.env.PORT || 5000;
 console.log("MONGO_URI:", process.env.MONGO_URI ? "OK" : "MISSING");
 console.log("PAYSTACK_SECRET_KEY:", process.env.PAYSTACK_SECRET_KEY ? "OK" : "MISSING");
 
-// Connect to MongoDB
+// ----- Connect to MongoDB -----
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB connection error:', err));
 
-// Health check endpoint
+// ----- Health check endpoint -----
 app.get('/', (req, res) => res.send('Backend is live!'));
 
-// Create user endpoint
+// ----- Create user endpoint -----
 app.post('/create-user', async (req, res) => {
   const { name, email, phone } = req.body;
 
@@ -35,7 +35,7 @@ app.post('/create-user', async (req, res) => {
   }
 
   try {
-    // Create Paystack virtual account
+    // ----- Paystack virtual account creation -----
     const paystackResponse = await axios.post(
       'https://api.paystack.co/virtual-account/numbers',
       {
@@ -53,39 +53,38 @@ app.post('/create-user', async (req, res) => {
 
     const vaData = paystackResponse.data.data;
 
-    // Save user in MongoDB
+    // ----- Save user in MongoDB -----
     const user = await User.create({
       name,
       email,
       phone,
-      virtualAccount: {
-        number: vaData.account_number,
-        bank: vaData.bank
-      },
+      virtualAccount: { number: vaData.account_number, bank: vaData.bank },
       balance: 0,
       lastUpdated: new Date()
     });
 
-    console.log("User created:", user);
+    console.log("User created successfully:", user);
     res.json({ message: 'User created!', user });
 
   } catch (err) {
     // ----- FULL ERROR LOGGING -----
-    if (err.response) {
-      // Paystack or Axios returned an error response
-      console.error("Paystack / Axios Error Response:", err.response.data);
-      res.status(err.response.status || 500).json({ error: err.response.data });
-    } else if (err.request) {
-      // No response received
-      console.error("No response received from Paystack:", err.request);
-      res.status(500).json({ error: "No response from Paystack" });
-    } else {
-      // Other errors
-      console.error("Server error:", err.message);
-      res.status(500).json({ error: err.message });
-    }
+    console.error("----- ERROR DETAILS START -----");
+    console.error("FULL ERROR OBJECT:", err);
+    console.error("err.response:", err.response);
+    console.error("err.request:", err.request);
+    console.error("err.message:", err.message);
+    console.error("----- ERROR DETAILS END -----");
+
+    // Send full error to frontend
+    res.status(500).json({
+      error: {
+        message: err.message || "Server error",
+        response: err.response?.data || null,
+        request: err.request ? "Request was made but no response received" : null
+      }
+    });
   }
 });
 
-// Start server
+// ----- Start server -----
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
