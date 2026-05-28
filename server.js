@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const axios = require('axios');
 const bodyParser = require('body-parser');
-const User = require('./models/User'); // Make sure this matches your folder structure exactly
+const User = require('./User'); // Same folder now
 
 const app = express();
 app.use(bodyParser.json());
@@ -26,10 +26,7 @@ app.post('/create-user', async (req, res) => {
         const response = await axios.post(
             'https://api.paystack.co/virtual-account/numbers',
             {
-                customer: {
-                    name,
-                    email
-                },
+                customer: { name, email },
                 preferred_bank: "access",
                 currency: "NGN"
             },
@@ -48,18 +45,12 @@ app.post('/create-user', async (req, res) => {
             name,
             email,
             phone,
-            virtualAccount: {
-                number: vaData.account_number,
-                bank: vaData.bank
-            },
+            virtualAccount: { number: vaData.account_number, bank: vaData.bank },
             balance: 0,
             lastUpdated: new Date()
         });
 
-        res.json({
-            message: "User created with virtual account!",
-            user
-        });
+        res.json({ message: "User created with virtual account!", user });
     } catch (error) {
         console.error(error.response?.data || error);
         res.status(500).json({ error: error.response?.data || "Something went wrong" });
