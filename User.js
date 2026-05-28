@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const transactionSchema = new mongoose.Schema({
-  type: String, // 'credit' or 'debit'
+  type: String,
   amount: Number,
   date: { type: Date, default: Date.now }
 });
@@ -17,10 +17,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   phone: String,
-  virtualAccount: {
-    number: String,
-    bank: String
-  },
+  virtualAccount: { number: String, bank: String },
   balance: { type: Number, default: 0 },
   transactions: [transactionSchema],
   complaints: [complaintSchema],
